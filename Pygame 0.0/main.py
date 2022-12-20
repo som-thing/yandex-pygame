@@ -45,8 +45,8 @@ def main():
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption("Ленточки")
 
-    board = Board(9, 9)
-    board.set_view(25, 25, 50)
+    board = Board(16, 16)
+    board.set_view(10, 10, 30)
     running = True
     while running:
         for event in pygame.event.get():
