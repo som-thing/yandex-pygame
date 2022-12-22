@@ -37,7 +37,9 @@ class Board:
             self.first_cell = cell
             self.flag = not self.flag
         else:
-            if (abs(self.first_cell[0] - cell[0]) == 1 and self.first_cell[1] == cell[1]) \
+            if self.first_cell == cell:
+                pass
+            elif (abs(self.first_cell[0] - cell[0]) == 1 and self.first_cell[1] == cell[1]) \
                     or (abs(self.first_cell[1] - cell[1]) == 1 and self.first_cell[0] == cell[0]):
                 self.on_click(cell)
             else:
