@@ -87,6 +87,27 @@ class Board:
     def begin(self, cell):
         self.board[cell[1]][cell[0]] = 0
 
+    def win_check(self):  # проверка на наличие возможных ходов
+        end = True
+        for y in range(self.height):
+            for x in range(self.width):
+                if (x, y) not in self.ribbons.keys():
+                    if x != 0:
+                        if (x - 1, y) not in self.ribbons.keys():
+                            end = False
+                    if x != self.width - 1:
+                        if (x + 1, y) not in self.ribbons.keys():
+                            end = False
+                    if y != 0:
+                        if (x, y - 1) not in self.ribbons.keys():
+                            end = False
+                    if y != self.height - 1:
+                        if (x, y + 1) not in self.ribbons.keys():
+                            end = False
+                if not end:
+                    break
+        return end
+
 
 def main():
     pygame.init()
@@ -103,6 +124,8 @@ def main():
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 board.get_click(event.pos)
+                if board.win_check():
+                    print("победа")
         screen.fill((0, 0, 0))
         board.render(screen)
         pygame.display.flip()
