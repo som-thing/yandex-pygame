@@ -56,11 +56,12 @@ class Board:
         cell = self.get_cell(mouse_pos)
         if cell:  # проверка, нажали ли на клетку или на пустое пространство
             if self.board[cell[1]][cell[0]] == 1:
-                pass
+                text = "Эта клетка уже занята."
             elif self.flag:
                 self.on_click(cell)
                 self.first_cell = cell
                 self.flag = not self.flag
+                text = "Выбрана перввая клетка"
             else:
                 if (abs(self.first_cell[0] - cell[0]) == 1 and self.first_cell[1] == cell[1]) \
                         or (abs(self.first_cell[1] - cell[1]) == 1 and self.first_cell[0] == cell[0]):
@@ -78,9 +79,12 @@ class Board:
                         self.ribbons[self.first_cell] = ["down", self.move]
                         self.ribbons[cell] = ["up", self.move]
                     self.move = 2 if self.move == 1 else 1
+                    text = f"Ход игрока {self.move}"
                 else:
                     self.begin(self.first_cell)
+                    text = 'Данная клетка не подходит для построения ленточки.'
                 self.flag = not self.flag
+            return text
 
     def get_cell(self, mouse_pos):
         for y in range(self.height):
@@ -120,6 +124,10 @@ class Board:
 
 def main():
     pygame.init()
+    pygame.font.init()
+    my_font = pygame.font.SysFont('Comic Sans MS', 15)
+    text_surface = my_font.render('Начало Игры. Ходит первый игрок.', False, (255, 255, 255))
+
     size = 500, 550
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption("Ленточки")
@@ -127,17 +135,23 @@ def main():
     board = Board(16, 16)
     board.set_view(10, 10, 30)
     running = True
+    victory = False
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                board.get_click(event.pos)
-                if board.win_check():
-                    print(f"победа {1 if board.move == 2 else 2}")
+                if not victory:
+                    text = board.get_click(event.pos)
+                    if text:
+                        text_surface = my_font.render(text, False, (255, 255, 255))
+                    if board.win_check():
+                        text_surface = my_font.render(f'Победил игрок {1 if board.move == 2 else 2}.', False,
+                                                      (255, 255, 255))
         screen.fill((0, 0, 0))
         board.render(screen)
+        screen.blit(text_surface, (10, 500))
         pygame.display.flip()
     pygame.quit()
 
