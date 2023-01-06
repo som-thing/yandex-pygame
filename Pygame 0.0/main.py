@@ -57,11 +57,13 @@ class Board:
         if cell:  # проверка, нажали ли на клетку или на пустое пространство
             if self.board[cell[1]][cell[0]] == 1:
                 text = "Эта клетка уже занята."
+                pygame.mixer.Sound("data/wrong move.wav").play()
             elif self.flag:
                 self.on_click(cell)
                 self.first_cell = cell
                 self.flag = not self.flag
-                text = "Выбрана перввая клетка"
+                text = "Выбрана первая клетка"
+                pygame.mixer.Sound("data/click.wav").play()
             else:
                 if (abs(self.first_cell[0] - cell[0]) == 1 and self.first_cell[1] == cell[1]) \
                         or (abs(self.first_cell[1] - cell[1]) == 1 and self.first_cell[0] == cell[0]):
@@ -80,9 +82,11 @@ class Board:
                         self.ribbons[cell] = ["up", self.move]
                     self.move = 2 if self.move == 1 else 1
                     text = f"Ход игрока {self.move}"
+                    pygame.mixer.Sound("data/click.wav").play()
                 else:
                     self.begin(self.first_cell)
                     text = 'Данная клетка не подходит для построения ленточки.'
+                    pygame.mixer.Sound("data/wrong move.wav").play()
                 self.flag = not self.flag
             return text
 
@@ -123,16 +127,18 @@ class Board:
 
 
 def main():
+    pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.init()
     pygame.font.init()
     my_font = pygame.font.SysFont('Comic Sans MS', 15)
     text_surface = my_font.render('Начало Игры. Ходит первый игрок.', False, (255, 255, 255))
 
+
     size = 500, 550
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption("Ленточки")
 
-    board = Board(16, 16)
+    board = Board(4, 4)
     board.set_view(10, 10, 30)
     running = True
     victory = False
@@ -149,6 +155,8 @@ def main():
                     if board.win_check():
                         text_surface = my_font.render(f'Победил игрок {1 if board.move == 2 else 2}.', False,
                                                       (255, 255, 255))
+                        pygame.mixer.Sound("data/win.wav").play()
+
         screen.fill((0, 0, 0))
         board.render(screen)
         screen.blit(text_surface, (10, 500))
