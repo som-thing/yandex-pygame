@@ -1,4 +1,6 @@
 import pygame
+import os
+import sys
 import random
 
 
@@ -126,17 +128,38 @@ class Board:
         return end
 
 
+def load_image(name, color_key=None):
+    fullname = os.path.join('data', name)
+    try:
+        image = pygame.image.load(fullname)
+    except pygame.error as message:
+        print(f'В папке отсутствует файл: {name}')
+        raise SystemExit(message)
+    if color_key == -1:
+        color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+pygame.mixer.pre_init(44100, -16, 1, 512)
+pygame.init()
+pygame.font.init()
+
+size = 500, 550
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("Ленточки")
+
+
 def main():
-    pygame.mixer.pre_init(44100, -16, 1, 512)
-    pygame.init()
-    pygame.font.init()
     my_font = pygame.font.SysFont('Comic Sans MS', 15)
     text_surface = my_font.render('Начало Игры. Ходит первый игрок.', False, (255, 255, 255))
-
-
-    size = 500, 550
-    screen = pygame.display.set_mode(size)
-    pygame.display.set_caption("Ленточки")
 
     board = Board(16, 16)
     board.set_view(10, 10, 30)
@@ -153,10 +176,14 @@ def main():
                     if text:
                         text_surface = my_font.render(text, False, (255, 255, 255))
                     if board.win_check():
-                        text_surface = my_font.render(f'Победил игрок {1 if board.move == 2 else 2}.', False,
+                        text_surface = my_font.render(f'Победил игрок {1 if board.move == 2 else 2}. Для возвращения '
+                                                      f'нажмите любую клавишу.', False,
                                                       (255, 255, 255))
                         pygame.mixer.Sound("data/win.wav").play()
-
+                        victory = True
+            elif event.type == pygame.KEYDOWN:
+                if victory:
+                    start_menu()
         screen.fill((0, 0, 0))
         board.render(screen)
         screen.blit(text_surface, (10, 500))
@@ -164,4 +191,78 @@ def main():
     pygame.quit()
 
 
-main()
+def start_menu():
+    intro_text = ["ЛЕНТОЧКИ", "",
+                  "Чтобы посмотреть правила игры,",
+                  "нажмите '1'.",
+                  "Чтобы перейти к выбору режима,",
+                  "нажмите 'Пробел'."]
+
+    fon = pygame.transform.scale(load_image('fon.jpg'), size)
+    screen.blit(fon, (0, 0))
+    font = pygame.font.SysFont('Verdana', 18)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    text_coord = 51
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 11
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    main()
+                elif event.key == pygame.K_1:
+                    rules()
+        pygame.display.flip()
+
+
+def rules():
+    intro_text = ["ПРАВИЛА", "", "",
+                  "На поле игроки один за другим чертят небольшие линии, которые перекры-",
+                  "вают 2 любых клетки подряд. Линия не может пересекать или соприкасаться",
+                  "с уже существующими. По мере заполнения поля, остается все меньше свобо",
+                  "дного места. Игрок, который не может больше поставить свою черту, т.к.",
+                  "все уже загорожено, проигрывает.", "",
+                  "Для возвращения в главное меню, нажмите любую кнопку."]
+
+    fon = pygame.transform.scale(load_image('fon2.jpg'), size)
+    screen.blit(fon, (0, 0))
+    font = pygame.font.SysFont('Verdana', 12)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                event.type == pygame.MOUSEBUTTONDOWN:
+                start_menu()
+        pygame.display.flip()
+
+
+start_menu()
+
