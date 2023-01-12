@@ -18,12 +18,25 @@ class Board:
 
         self.flag = True
         self.ribbons = {}  # здесь будут хранится соединения
-        self.ribbon_color1 = (random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
-        self.ribbon_color2 = (0, 0, 0)
+        self.ribbon_color1 = (190, 190, 190)
+        self.ribbon_color2 = (random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
+        while self.ribbon_color1[0] in range(180, 211) and self.ribbon_color1[1] in range(180, 211) \
+                and self.ribbon_color1[2] in range(180, 211): # проверка, что цвет не близок к серому
+            self.ribbon_color1 = (
+                random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
+        while self.ribbon_color2[0] in range(180, 211) and self.ribbon_color2[1] in range(180, 211) \
+                and self.ribbon_color2[2] in range(180, 211):
+            self.ribbon_color2 = (
+                random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
         flag = True
-        while self.ribbon_color1 == self.ribbon_color2 or flag:
-            flag = False
-            self.ribbon_color2 = (random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
+        while flag: # проверка, что цвета не близки
+            if abs(self.ribbon_color2[0] - self.ribbon_color1[0]) >= 50 \
+                    and abs(self.ribbon_color2[1] - self.ribbon_color1[1]) >= 50 \
+                    and abs(self.ribbon_color2[1] - self.ribbon_color1[1]) >= 50:
+                flag = False
+            else:
+                self.ribbon_color2 = (
+                    random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
 
     def set_view(self, left, top, cell_size):
         self.left = left
@@ -265,4 +278,3 @@ def rules():
 
 
 start_menu()
-
