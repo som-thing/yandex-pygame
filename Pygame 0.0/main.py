@@ -14,7 +14,6 @@ class Board:
         self.left = 10
         self.top = 10
         self.cell_size = 30
-        self.colors = [[0 for j in range(height)] for i in range(width)]
 
         self.flag = True
         self.ribbons = {}  # здесь будут хранится соединения
@@ -23,7 +22,8 @@ class Board:
         flag = True
         while self.ribbon_color1 == self.ribbon_color2 or flag:
             flag = False
-            self.ribbon_color2 = (random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
+            self.ribbon_color2 = (
+                random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
 
     def set_view(self, left, top, cell_size):
         self.left = left
@@ -44,15 +44,17 @@ class Board:
                                                                  self.cell_size), 1)
                 if (x, y) in self.ribbons.keys():  # прорисовка ленточек
                     if self.ribbons[(x, y)][0] == "left":
-                        pygame.draw.rect(screen, ribbon_colors[self.ribbons[(x, y)][1] - 1], ((x - 1) * self.cell_size + self.left + 7,
-                                                                     y * self.cell_size + self.top + 5,
-                                                                     2 * self.cell_size - 14,
-                                                                     self.cell_size - 10))
+                        pygame.draw.rect(screen, ribbon_colors[self.ribbons[(x, y)][1] - 1],
+                                         ((x - 1) * self.cell_size + self.left + 7,
+                                          y * self.cell_size + self.top + 5,
+                                          2 * self.cell_size - 14,
+                                          self.cell_size - 10))
                     if self.ribbons[(x, y)][0] == "up":
-                        pygame.draw.rect(screen, ribbon_colors[self.ribbons[(x, y)][1] - 1], (x * self.cell_size + self.left + 5,
-                                                                     (y - 1) * self.cell_size + self.top + 7,
-                                                                     self.cell_size - 10,
-                                                                     2 * self.cell_size - 14))
+                        pygame.draw.rect(screen, ribbon_colors[self.ribbons[(x, y)][1] - 1],
+                                         (x * self.cell_size + self.left + 5,
+                                          (y - 1) * self.cell_size + self.top + 7,
+                                          self.cell_size - 10,
+                                          2 * self.cell_size - 14))
 
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
@@ -128,6 +130,179 @@ class Board:
         return end
 
 
+class Board1:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.board = [[0] * width for _ in range(height)]
+        self.move = 0  # эта переменная определяет чей сейчас ход
+        self.moves = [random.randint(2, 5) for _ in range(128)]
+
+        self.left = 10
+        self.top = 10
+        self.cell_size = 30
+
+        self.flag = True
+        self.ribbons = {}  # здесь будут хранится соединения
+        self.ribbon_color1 = (random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
+        self.ribbon_color2 = (0, 0, 0)
+        flag = True
+        while self.ribbon_color1 == self.ribbon_color2 or flag:
+            flag = False
+            self.ribbon_color2 = (
+                random.choice(range(1, 256)), random.choice(range(1, 256)), random.choice(range(1, 256)))
+
+    def set_view(self, left, top, cell_size):
+        self.left = left
+        self.top = top
+        self.cell_size = cell_size
+
+    def render(self, screen):
+        colors = [pygame.Color('black'), pygame.Color('grey')]
+        ribbon_colors = [self.ribbon_color1, self.ribbon_color2]
+        for y in range(self.height):
+            for x in range(self.width):
+                pygame.draw.rect(screen, colors[self.board[y][x]], (x * self.cell_size + self.left,
+                                                                    y * self.cell_size + self.top,
+                                                                    self.cell_size, self.cell_size))
+                pygame.draw.rect(screen, pygame.Color('white'), (x * self.cell_size + self.left,
+                                                                 y * self.cell_size + self.top,
+                                                                 self.cell_size,
+                                                                 self.cell_size), 1)
+                if (x, y) in self.ribbons.keys():  # прорисовка ленточек
+                    if self.ribbons[(x, y)][0] == "left":
+                        pygame.draw.rect(screen, ribbon_colors[self.ribbons[(x, y)][1] - 1],
+                                         ((x - self.ribbons[(x, y)][2] + 1) * self.cell_size + self.left + 7,
+                                          y * self.cell_size + self.top + 5,
+                                          self.ribbons[(x, y)][2] * self.cell_size - 14,
+                                          self.cell_size - 10))
+                    if self.ribbons[(x, y)][0] == "up":
+                        pygame.draw.rect(screen, ribbon_colors[self.ribbons[(x, y)][1] - 1],
+                                         (x * self.cell_size + self.left + 5,
+                                          (y - self.ribbons[(x, y)][2] + 1) * self.cell_size + self.top + 7,
+                                          self.cell_size - 10,
+                                          self.ribbons[(x, y)][2] * self.cell_size - 14))
+
+    def get_click(self, mouse_pos):
+        cell = self.get_cell(mouse_pos)
+        if cell:  # проверка, нажали ли на клетку или на пустое пространство
+            if self.board[cell[1]][cell[0]] == 1:
+                text = "Эта клетка уже занята."
+                pygame.mixer.Sound("data/wrong move.wav").play()
+            elif self.flag:
+                self.on_click(cell)
+                self.first_cell = cell
+                self.flag = not self.flag
+                text = "Выбрана первая клетка"
+                pygame.mixer.Sound("data/click.wav").play()
+            else:
+                if (abs(self.first_cell[0] - cell[0]) == self.moves[self.move] - 1 and self.first_cell[1]
+                    == cell[1]) or (abs(self.first_cell[1] - cell[1]) == self.moves[self.move] - 1 and
+                                    self.first_cell[0] == cell[0]):
+                    if self.first_cell[0] - cell[0] == self.moves[self.move] - 1:
+                        if self.moves[self.move] > 2:
+                            if any([self.board[cell[1]][i] for i in range(cell[0] + 1, self.first_cell[0])]):
+                                self.begin(self.first_cell)
+                                text = f'Данная клетка не подходит для построения ленточки. ' \
+                                       f'({self.moves[self.move]} на 1)'
+                                pygame.mixer.Sound("data/wrong move.wav").play()
+                                self.flag = not self.flag
+                                return text
+                        self.on_click(cell)
+                        self.ribbons[self.first_cell] = ["left", self.move % 2 + 1, self.moves[self.move]]
+                        self.ribbons[cell] = ["right", self.move % 2 + 1, self.moves[self.move]]
+                        for i in range(cell[0] + 1, self.first_cell[0]):
+                            self.board[cell[1]][i] = 1
+                    elif self.first_cell[0] - cell[0] == -self.moves[self.move] + 1:
+                        if self.moves[self.move] > 2:
+                            if any([self.board[cell[1]][i] for i in range(self.first_cell[0] + 1, cell[0])]):
+                                self.begin(self.first_cell)
+                                text = f'Данная клетка не подходит для построения ленточки. ' \
+                                       f'({self.moves[self.move]} на 1)'
+                                pygame.mixer.Sound("data/wrong move.wav").play()
+                                self.flag = not self.flag
+                                return text
+                        self.on_click(cell)
+                        self.ribbons[self.first_cell] = ["right", self.move % 2 + 1, self.moves[self.move]]
+                        self.ribbons[cell] = ["left", self.move % 2 + 1, self.moves[self.move]]
+                        for i in range(self.first_cell[0] + 1, cell[0]):
+                            self.board[cell[1]][i] = 1
+                    elif self.first_cell[1] - cell[1] == self.moves[self.move] - 1:
+                        if any([self.board[i][cell[0]] for i in range(cell[1] + 1, self.first_cell[1])]):
+                            self.begin(self.first_cell)
+                            text = f'Данная клетка не подходит для построения ленточки. ' \
+                                   f'({self.moves[self.move]} на 1)'
+                            pygame.mixer.Sound("data/wrong move.wav").play()
+                            self.flag = not self.flag
+                            return text
+                        self.on_click(cell)
+                        self.ribbons[self.first_cell] = ["up", self.move % 2 + 1, self.moves[self.move]]
+                        self.ribbons[cell] = ["down", self.move % 2 + 1, self.moves[self.move]]
+                        for i in range(cell[1] + 1, self.first_cell[1]):
+                            self.board[i][cell[0]] = 1
+                    else:
+                        if any([self.board[i][cell[0]] for i in range(self.first_cell[1] + 1, cell[1])]):
+                            self.begin(self.first_cell)
+                            text = f'Данная клетка не подходит для построения ленточки. ' \
+                                   f'({self.moves[self.move]} на 1)'
+                            pygame.mixer.Sound("data/wrong move.wav").play()
+                            self.flag = not self.flag
+                            return text
+                        self.on_click(cell)
+                        self.ribbons[self.first_cell] = ["down", self.move % 2 + 1, self.moves[self.move]]
+                        self.ribbons[cell] = ["up", self.move % 2 + 1, self.moves[self.move]]
+                        for i in range(self.first_cell[1] + 1, cell[1]):
+                            self.board[i][cell[0]] = 1
+                    self.move += 1
+                    text = f"Ход игрока {self.move % 2 + 1}. ({self.moves[self.move]} на 1)"
+                    pygame.mixer.Sound("data/click.wav").play()
+                else:
+                    self.begin(self.first_cell)
+                    text = f'Данная клетка не подходит для построения ленточки. ({self.moves[self.move]} на 1)'
+                    pygame.mixer.Sound("data/wrong move.wav").play()
+                self.flag = not self.flag
+            return text
+
+    def get_cell(self, mouse_pos):
+        for y in range(self.height):
+            for x in range(self.width):
+                if mouse_pos[0] in range(x * self.cell_size + self.left, (x + 1) * self.cell_size + self.left) and \
+                        mouse_pos[1] in range(y * self.cell_size + self.top, (y + 1) * self.cell_size + self.top):
+                    return x, y
+        return None
+
+    def on_click(self, cell):
+        self.board[cell[1]][cell[0]] = 1
+
+    def begin(self, cell):
+        self.board[cell[1]][cell[0]] = 0
+
+    def win_check(self):  # проверка на наличие возможных ходов
+        end = True
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == 0:
+                    if x >= self.moves[self.move]:
+                        if not any([self.board[y][i] for i in range(x - self.moves[self.move] + 1, x)]):
+                            end = False
+                            break
+                    if x <= self.width - self.moves[self.move]:
+                        if not any([self.board[y][i] for i in range(x, x + self.moves[self.move])]):
+                            end = False
+                            break
+                    if y >= self.moves[self.move]:
+                        if not any([self.board[i][x]] for i in range(y - self.moves[self.move] + 1, y)):
+                            end = False
+                            break
+                    if y <= self.height - self.moves[self.move]:
+                        if not any([self.board[i][x] for i in range(y, y + self.moves[self.move])]):
+                            end = False
+                            break
+                if not end:
+                    break
+        return end
+
+
 def load_image(name, color_key=None):
     fullname = os.path.join('data', name)
     try:
@@ -175,7 +350,7 @@ def main():
                     text = board.get_click(event.pos)
                     if text:
                         text_surface = my_font.render(text, False, (255, 255, 255))
-                    if board.win_check():
+                    if board.win_check() and not "Выбрана" in text:
                         text_surface = my_font.render(f'Победил игрок {1 if board.move == 2 else 2}. Для возвращения '
                                                       f'нажмите любую клавишу.', False,
                                                       (255, 255, 255))
@@ -188,6 +363,45 @@ def main():
         board.render(screen)
         screen.blit(text_surface, (10, 500))
         pygame.display.flip()
+    pygame.quit()
+
+
+def minor():
+    my_font = pygame.font.SysFont('Comic Sans MS', 15)
+    text_surface = my_font.render('Начало Игры. Ходит первый игрок.', False, (255, 255, 255))
+
+    board = Board1(16, 16)
+    board.set_view(10, 10, 30)
+    running = True
+    victory = False
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if not victory:
+                    text = board.get_click(event.pos)
+                    if text:
+                        text_surface = my_font.render(text, False, (255, 255, 255))
+                    if "Выбрана" not in text:
+                        if board.win_check():
+                            text_surface = my_font.render(
+                                f'Победил игрок {1 if board.move % 2 + 1 == 2 else 2}. Для возвращения '
+                                f'нажмите любую клавишу.', False,
+                                (255, 255, 255))
+                            pygame.mixer.Sound("data/win.wav").play()
+                            victory = True
+            elif event.type == pygame.KEYDOWN:
+                if victory:
+                    start_menu()
+        screen.fill((0, 0, 0))
+        board.render(screen)
+        screen.blit(text_surface, (10, 500))
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            break
     pygame.quit()
 
 
@@ -226,10 +440,13 @@ def start_menu():
                 terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    main()
+                    choose_mode()
                 elif event.key == pygame.K_1:
                     rules()
-        pygame.display.flip()
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            break
 
 
 def rules():
@@ -259,10 +476,55 @@ def rules():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or \
-                event.type == pygame.MOUSEBUTTONDOWN:
+                    event.type == pygame.MOUSEBUTTONDOWN:
                 start_menu()
-        pygame.display.flip()
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            break
+
+
+def choose_mode():
+    fon = pygame.transform.scale(load_image('fon3.jpg'), size)
+    screen.blit(fon, (0, 0))
+    font = pygame.font.SysFont('Verdana', 20)
+    font1 = pygame.font.SysFont('Verdana', 12)
+    string_rendered = font.render("Выберите режим", 1, (0, 100, 0))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top, intro_rect.x = 50, 10
+    screen.blit(string_rendered, intro_rect)
+    string_rendered = font1.render("Для выхода в главное меню нажмите любую кнопку на клавиатуре", 1, (0, 100, 0))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top, intro_rect.x = 80, 10
+    screen.blit(string_rendered, intro_rect)
+
+    pygame.draw.rect(screen, (150, 255, 100), (3, 253, 243, 143), 0)
+    pygame.draw.rect(screen, (150, 255, 100), (253, 253, 243, 143), 0)
+
+    string_rendered = font1.render("Только ленточки 2 на 1", 1, (0, 100, 0))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top, intro_rect.x = 315, 50
+    screen.blit(string_rendered, intro_rect)
+    string_rendered = font1.render("Ленточки разных размеров", 1, (0, 100, 0))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top, intro_rect.x = 315, 295
+    screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                start_menu()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.pos[0] in range(3, 246) and event.pos[1] in range(253, 396):
+                    main()
+                elif event.pos[0] in range(253, 496) and event.pos[1] in range(253, 396):
+                    minor()
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            break
 
 
 start_menu()
-
