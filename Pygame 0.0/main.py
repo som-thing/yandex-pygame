@@ -384,7 +384,7 @@ def main():
     my_font = pygame.font.SysFont('Comic Sans MS', 15)
     text_surface = my_font.render('Начало Игры. Ходит первый игрок.', False, (255, 255, 255))
 
-    board = Board(5, 5)
+    board = Board(16, 16)
     board.set_view(10, 10, 30)
     running = True
     victory = False
