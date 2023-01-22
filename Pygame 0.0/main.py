@@ -589,6 +589,7 @@ def win(player):
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
+                pygame.mixer.Sound("data/click.wav").play()
                 start_menu()
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
