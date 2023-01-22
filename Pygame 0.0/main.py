@@ -4,6 +4,29 @@ import sys
 import random
 
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
 class Board:
     def __init__(self, width, height):
         self.width = width
@@ -354,13 +377,14 @@ pygame.font.init()
 size = 500, 550
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Ленточки")
+all_sprites = pygame.sprite.Group()
 
 
 def main():
     my_font = pygame.font.SysFont('Comic Sans MS', 15)
     text_surface = my_font.render('Начало Игры. Ходит первый игрок.', False, (255, 255, 255))
 
-    board = Board(16, 16)
+    board = Board(5, 5)
     board.set_view(10, 10, 30)
     running = True
     victory = False
@@ -375,14 +399,11 @@ def main():
                     if text:
                         text_surface = my_font.render(text, False, (255, 255, 255))
                     if board.win_check() and "Выбрана" not in text:
-                        text_surface = my_font.render(f'Победил игрок {1 if board.move == 2 else 2}. Для возвращения '
-                                                      f'нажмите любую клавишу.', False,
-                                                      (255, 255, 255))
                         pygame.mixer.Sound("data/win.wav").play()
                         victory = True
+                        win(1 if board.move % 2 + 1 == 2 else 2)
             elif event.type == pygame.KEYDOWN:
-                if victory:
-                    start_menu()
+                start_menu()
         screen.fill((0, 0, 0))
         board.render(screen)
         screen.blit(text_surface, (10, 500))
@@ -412,15 +433,11 @@ def minor():
                         text_surface = my_font.render(text, False, (255, 255, 255))
                     if "Выбрана" not in text if text else "":
                         if board.win_check():
-                            text_surface = my_font.render(
-                                f'Победил игрок {1 if board.move % 2 + 1 == 2 else 2}. Для возвращения '
-                                f'нажмите любую клавишу.', False,
-                                (255, 255, 255))
                             pygame.mixer.Sound("data/win.wav").play()
                             victory = True
+                            win(1 if board.move % 2 + 1 == 2 else 2)
             elif event.type == pygame.KEYDOWN:
-                if victory:
-                    start_menu()
+                start_menu()
         screen.fill((0, 0, 0))
         board.render(screen)
         screen.blit(text_surface, (10, 500))
@@ -552,6 +569,34 @@ def choose_mode():
             pygame.display.flip()
         except pygame.error:
             break
+
+
+def win(player):
+    running = True
+    fps = 20
+    clock = pygame.time.Clock()
+
+    firework1 = AnimatedSprite(load_image("Firework.png"), 6, 5, 10, 40)
+    firework2 = AnimatedSprite(load_image("Firework.png"), 6, 5, 250, 270)
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                start_menu()
+        screen.fill((0, 0, 0))
+        all_sprites.draw(screen)
+        my_font = pygame.font.SysFont('Comic Sans MS', 15)
+        my_font1 = pygame.font.SysFont('Comic Sans MS', 30)
+        text_surface = my_font1.render(f'Победил игрок {player}.', False, (255, 255, 255))
+        screen.blit(text_surface, (130, 225))
+        text_surface = my_font.render('Для возвращения нажмите любую клавишу.', False, (255, 255, 255))
+        screen.blit(text_surface, (80, 280))
+        firework1.update()
+        firework2.update()
+        clock.tick(fps)
+        pygame.display.flip()
+    pygame.quit()
 
 
 start_menu()
