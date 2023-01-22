@@ -483,8 +483,10 @@ def start_menu():
                 terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    pygame.mixer.Sound("data/click.wav").play()
                     choose_mode()
                 elif event.key == pygame.K_1:
+                    pygame.mixer.Sound("data/click.wav").play()
                     rules()
         try:
             pygame.display.flip()
@@ -521,6 +523,7 @@ def rules():
                 terminate()
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
+                pygame.mixer.Sound("data/click.wav").play()
                 start_menu()
         try:
             pygame.display.flip()
@@ -559,11 +562,14 @@ def choose_mode():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN:
+                pygame.mixer.Sound("data/click.wav").play()
                 start_menu()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.pos[0] in range(3, 246) and event.pos[1] in range(253, 396):
+                    pygame.mixer.Sound("data/click.wav").play()
                     main()
                 elif event.pos[0] in range(253, 496) and event.pos[1] in range(253, 396):
+                    pygame.mixer.Sound("data/click.wav").play()
                     minor()
         try:
             pygame.display.flip()
