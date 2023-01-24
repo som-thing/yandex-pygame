@@ -407,7 +407,10 @@ def main():
         screen.fill((0, 0, 0))
         board.render(screen)
         screen.blit(text_surface, (10, 500))
-        pygame.display.flip()
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            break
     pygame.quit()
 
 
@@ -602,7 +605,10 @@ def win(player):
         firework1.update()
         firework2.update()
         clock.tick(fps)
-        pygame.display.flip()
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            break
     pygame.quit()
 
 
